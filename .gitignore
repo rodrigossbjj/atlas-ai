@@ -15,4 +15,3 @@ data/chunks/*
 
 __pycache__/
 *.pyc
-app/pdf
