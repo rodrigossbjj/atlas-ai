@@ -1,0 +1,17 @@
+.venv/
+
+__pycache__/
+*.pyc
+
+.pytest_cache/
+
+.vscode/
+
+data/pdfs/*
+!data/pdfs/.gitkeep
+
+data/chunks/*
+!data/chunks/.gitkeep
+
+__pycache__/
+*.pyc
