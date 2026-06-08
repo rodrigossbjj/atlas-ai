@@ -1,5 +1,5 @@
-CHUNK_SIZE = 20
-OVERLAP = 200
+CHUNK_SIZE = 300
+OVERLAP = 50
 
 
 def create_chunks(document: dict) -> list[dict]:
@@ -7,7 +7,7 @@ def create_chunks(document: dict) -> list[dict]:
     chunk_id = 1
 
     for page in document["pages"]:
-        words = page["content"].spltit()
+        words = page["content"].split()
         start = 0
 
         while start < len(words):

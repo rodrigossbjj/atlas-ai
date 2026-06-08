@@ -1,5 +1,5 @@
 import fitz
-from cleaner import cleaner_text
+from app.pdf.cleaner import cleaner_text
 from pathlib import Path
 
 def read_pdf(file_path) -> dict:
