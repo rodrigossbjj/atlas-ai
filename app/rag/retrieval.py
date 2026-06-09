@@ -1,5 +1,6 @@
 from app.embeddings.generator import EmbeddingGenerator
 from typing import List, Dict, Any
+import math 
 
 class Retriever:
     """
@@ -13,6 +14,45 @@ class Retriever:
         Inicializa o Retriever com uma instância treinada de EmbeddingGenerator.
         """
         self.generator = generator
+
+
+    def cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
+        """
+        Calcula a similaridade de cosseno entre dois vetores numéricos de mesmo tamanho.
+        
+        Fórmula matemática:
+            Similarity = (v1 . v2) / (||v1|| * ||v2||)
+            
+            Onde:
+            - (v1 . v2) é o produto escalar (dot product).
+            - ||v1|| e ||v2|| são as normas euclidianas (L2-norm) dos vetores.
+            
+        Retorna:
+            float: Similaridade entre 0.0 (totalmente dissimilares) e 1.0 (idênticos).
+        """
+        if len(v1) != len(v2):
+            raise ValueError("Os vetores devem possuir o mesmo tamanho para o cálculo de similaridade.")
+
+        if not v1:
+            return 0.0
+
+        # Produto escalar (dot product)
+        dot_product = sum(x * y for x, y in zip(v1, v2))
+
+        # Norma L2 do vetor 1: sqrt(sum(x_i^2))
+        norm_v1 = math.sqrt(sum(x * x for x in v1))
+
+        # Norma L2 do vetor 2: sqrt(y_i^2))
+        norm_v2 = math.sqrt(sum(y * y for y in v2))
+
+        # Tratamento de vetores de magnitude zero para evitar divisão por zero
+        if norm_v1 == 0.0 or norm_v2 == 0.0:
+            return 0.0
+
+        similarity = dot_product / (norm_v1 * norm_v2)
+
+        # Garante que o score fique no intervalo [0.0, 1.0] contra eventuais imprecisões numéricas de float
+        return max(0.0, min(1.0, similarity))
 
     def search(
         self,
@@ -47,7 +87,7 @@ class Retriever:
             if not chunk_embedding:
                 similarity = 0.0
             else:
-                similarity = self.generator.cosine_similarity(query_embedding, chunk_embedding)
+                similarity = self.cosine_similarity(query_embedding, chunk_embedding)
             
             # 4. Formata o resultado do chunk
             results.append({

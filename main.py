@@ -6,20 +6,20 @@ from app.rag.retrieval import Retriever
 
 
 def build_index(pdf_path: str) -> tuple[list[dict], EmbeddingGenerator]:
-    """
-    Lê um PDF, divide em chunks, treina o gerador e retorna
-    os chunks com embeddings e o gerador treinado.
-    """
     document = read_pdf(pdf_path)
     chunks = create_chunks(document)
 
     generator = EmbeddingGenerator()
-    generator.fit(chunks)
+
+    texts = [chunk["content"] for chunk in chunks]
+
+    embeddings = generator.transform_many(texts)
 
     embedded_chunks = []
-    for chunk in chunks:
+
+    for chunk, embedding in zip(chunks, embeddings):
         embedded = chunk.copy()
-        embedded["embedding"] = generator.transform(chunk["content"])
+        embedded["embedding"] = embedding
         embedded_chunks.append(embedded)
 
     return embedded_chunks, generator
@@ -68,7 +68,7 @@ Exemplos de uso:
 
     print(f"\nIndexando: {args.pdf}")
     embedded_chunks, generator = build_index(args.pdf)
-    print(f"Vocabulário: {len(generator.vocabulary)} termos | Chunks: {len(embedded_chunks)}")
+    print(f"\nChunks indexados: {len(embedded_chunks)}")
 
     print(f'\nBuscando: "{args.query}"')
     results = search(args.query, embedded_chunks, generator, top_k=args.top_k)
