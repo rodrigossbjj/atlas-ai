@@ -3,7 +3,7 @@ from app.pdf.reader import read_pdf
 from app.rag.chunker import create_chunks
 from app.embeddings.generator import EmbeddingGenerator
 from app.rag.retrieval import Retriever
-
+from app.repositories import Repository
 
 def build_index(pdf_path: str) -> tuple[list[dict], EmbeddingGenerator]:
     document = read_pdf(pdf_path)
@@ -16,11 +16,20 @@ def build_index(pdf_path: str) -> tuple[list[dict], EmbeddingGenerator]:
     embeddings = generator.transform_many(texts)
 
     embedded_chunks = []
+    repository = Repository()
 
     for chunk, embedding in zip(chunks, embeddings):
         embedded = chunk.copy()
         embedded["embedding"] = embedding
         embedded_chunks.append(embedded)
+
+        repository.save_chunk(
+            chunk_id=embedded["chunk_id"],
+            page=embedded["page"],
+            source=embedded["source"],
+            content=embedded["content"],
+            embedding=embedding
+        )
 
     return embedded_chunks, generator
 
@@ -50,9 +59,9 @@ def main() -> None:
         description="Atlas AI — Pipeline RAG com TF-IDF do zero.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemplos de uso:
-  python main.py caminho/para/documento.pdf "Sua pergunta aqui"
-  python main.py caminho/para/documento.pdf "Sua pergunta aqui" --top_k 5
+    Exemplos de uso:
+    python main.py caminho/para/documento.pdf "Sua pergunta aqui"
+    python main.py caminho/para/documento.pdf "Sua pergunta aqui" --top_k 5
         """
     )
     parser.add_argument("pdf", help="Caminho para o arquivo PDF a ser indexado.")
@@ -67,7 +76,16 @@ Exemplos de uso:
     args = parser.parse_args()
 
     print(f"\nIndexando: {args.pdf}")
-    embedded_chunks, generator = build_index(args.pdf)
+    # embedded_chunks, generator = build_index(args.pdf)
+    repository = Repository()
+
+    if repository.count() == 0:
+        print("Banco vazio. Indexando PDF...")
+        embedded_chunks, generator = build_index(args.pdf)
+    else:
+        print("Carregando chunks do PostgreSQL...")
+        embedded_chunks = repository.get_all_chunks()
+        generator = EmbeddingGenerator()
     print(f"\nChunks indexados: {len(embedded_chunks)}")
 
     print(f'\nBuscando: "{args.query}"')
