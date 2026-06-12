@@ -1,3 +1,5 @@
 pytest==8.4.1
 pytest-cov==7.0.0
 pymupdf==1.26.4
+psycopg2-binary==2.9.12
+ollama=0.30.7
