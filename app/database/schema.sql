@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS chunks (
+    id SERIAL PRIMARY KEY,
+    chunk_id VARCHAR(255) UNIQUE NOT NULL,
+    page INTEGER,
+    source VARCHAR(255),
+    content TEXT NOT NULL,
+    embedding JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
