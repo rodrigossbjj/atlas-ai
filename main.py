@@ -4,16 +4,18 @@ from app.rag.chunker import create_chunks
 from app.embeddings.generator import EmbeddingGenerator
 from app.rag.retrieval import Retriever
 from app.repositories import Repository
+from app.generator import Generator
+from app.prompts import PromptBuilder
 
 def build_index(pdf_path: str) -> tuple[list[dict], EmbeddingGenerator]:
     document = read_pdf(pdf_path)
     chunks = create_chunks(document)
 
-    generator = EmbeddingGenerator()
+    embedding_generator = EmbeddingGenerator()
 
     texts = [chunk["content"] for chunk in chunks]
 
-    embeddings = generator.transform_many(texts)
+    embeddings = embedding_generator.transform_many(texts)
 
     embedded_chunks = []
     repository = Repository()
@@ -31,7 +33,7 @@ def build_index(pdf_path: str) -> tuple[list[dict], EmbeddingGenerator]:
             embedding=embedding
         )
 
-    return embedded_chunks, generator
+    return embedded_chunks, embedding_generator
 
 
 def search(query: str, embedded_chunks: list[dict], generator: EmbeddingGenerator, top_k: int) -> list[dict]:
@@ -90,8 +92,16 @@ def main() -> None:
 
     print(f'\nBuscando: "{args.query}"')
     results = search(args.query, embedded_chunks, generator, top_k=args.top_k)
+ 
+    context = "\n\n".join(result["content"] for result in results)
 
-    print_results(results)
+    promp_builder = PromptBuilder()
+    prompt = promp_builder.build(question=args.query, context=context)
+
+    llm_generator = Generator()
+    resp = llm_generator.generate(prompt=prompt)
+    
+    print(resp)
 
 
 if __name__ == "__main__":
