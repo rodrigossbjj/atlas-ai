@@ -174,3 +174,5 @@ PYTHONPATH=. .venv/bin/pytest
 - **[PostgreSQL](https://www.postgresql.org/):** Sistema de gerenciamento de banco de dados relacional.
 - **[psycopg2](https://www.psycopg.org/):** Adaptador de banco de dados PostgreSQL para Python.
 - **[pytest](https://docs.pytest.org/):** Framework de testes.
+
+Ainda em desenvolvimento!
